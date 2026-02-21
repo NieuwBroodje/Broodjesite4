@@ -39,7 +39,7 @@ export default function Footer() {
         </div>
         <div style={{ borderTop: '1px solid rgba(232,160,32,0.06)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <p style={{ color: 'rgba(74,90,106,0.7)', fontSize: 12, letterSpacing: 0.5 }}>© {new Date().getFullYear()} Broodje RP. Alle rechten voorbehouden.</p>
-          <p style={{ color: 'rgba(74,90,106,0.5)', fontSize: 11 }}>Powered by Tebex</p>
+          <p style={{ color: 'rgba(74,90,106,0.5)', fontSize: 11 }}>Powered by Tebex &nbsp;·&nbsp; Website gemaakt door <span style={{ color: '#e8a020' }}>Karel</span></p>
         </div>
       </div>
     </footer>
