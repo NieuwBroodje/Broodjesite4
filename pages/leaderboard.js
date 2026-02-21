@@ -26,20 +26,32 @@ export default function Leaderboard() {
         setLoading(true);
         const r = await fetch('/api/tebex/payments');
         if (!r.ok) {
-          const e = await r.json();
-          throw new Error(e.error || `API fout ${r.status}`);
+          const e = await r.json().catch(() => ({}));
+          throw new Error(e.error || e.detail || `Tebex ${r.status}`);
         }
         const data = await r.json();
-        const raw = Array.isArray(data) ? data : (data.data || []);
+        const raw = Array.isArray(data) ? data : (data.data || data.payments || []);
 
         // Aggregate by player username
         const totals = {};
         raw.forEach(payment => {
-          if (payment.status !== 'Complete' && payment.status !== 'complete') return;
-          const name = payment.player?.name || payment.username || 'Onbekend';
-          const avatar = payment.player?.meta?.avatar || null;
-          const amount = parseFloat(payment.amount || payment.price || 0);
-          if (!totals[name]) totals[name] = { name, avatar, total: 0, count: 0, currency: payment.currency || 'EUR' };
+          const status = (payment.status || '').toLowerCase();
+          if (status !== 'complete' && status !== 'completed') return;
+          const name =
+            payment.player?.username ||
+            payment.player?.name ||
+            payment.username ||
+            payment.player_name ||
+            'Onbekend';
+          const avatar =
+            payment.player?.meta?.avatar ||
+            payment.player?.avatar ||
+            null;
+          const amount = parseFloat(
+            payment.amount || payment.price || payment.total_price || 0
+          );
+          const cur = payment.currency || payment.currency_iso || 'EUR';
+          if (!totals[name]) totals[name] = { name, avatar, total: 0, count: 0, currency: cur };
           totals[name].total += amount;
           totals[name].count += 1;
         });
@@ -96,15 +108,17 @@ export default function Leaderboard() {
             <div style={{ background: 'rgba(232,64,64,0.06)', border: '1px solid rgba(232,64,64,0.22)', borderRadius: 14, padding: '36px', textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 14 }}>⚠️</div>
               <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 22, marginBottom: 8, color: '#e84040' }}>Kon leaderboard niet laden</h3>
-              <p style={{ color: 'rgba(240,232,216,0.7)', fontSize: 14, marginBottom: 16 }}>{error}</p>
-              <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: '16px 20px', textAlign: 'left', maxWidth: 500, margin: '0 auto' }}>
-                <p style={{ color: '#e8a020', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>Vereist:</p>
-                <p style={{ color: 'rgba(138,155,176,0.8)', fontSize: 13, lineHeight: 1.9 }}>
-                  Voeg je <strong style={{ color: '#f0e8d8' }}>Private Key</strong> toe in Vercel:<br />
-                  Naam: <code style={{ color: '#e8a020' }}>TEBEX_SECRET_KEY</code><br />
-                  Waarde: je Private Key van creator.tebex.io → API Keys
+              <p style={{ color: 'rgba(240,232,216,0.7)', fontSize: 14, marginBottom: 20 }}>{error}</p>
+              <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: '16px 20px', textAlign: 'left', maxWidth: 520, margin: '0 auto 20px' }}>
+                <p style={{ color: '#e8a020', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>Controleer:</p>
+                <p style={{ color: 'rgba(160,175,190,0.85)', fontSize: 13, lineHeight: 2 }}>
+                  1. <code style={{ color: '#e8a020' }}>TEBEX_SECRET_KEY</code> is toegevoegd aan Vercel<br />
+                  2. Je hebt de app opnieuw gedeployed na het toevoegen<br />
+                  3. De Private Key komt van <strong>creator.tebex.io → API Keys</strong><br />
+                  4. Je Tebex webstore heeft betalingen (de API geeft anders een lege lijst)
                 </p>
               </div>
+              <a href="/api/tebex/payments" target="_blank" style={{ display: 'inline-block', padding: '8px 18px', background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.28)', borderRadius: 7, color: '#e8a020', fontSize: 13, fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, textDecoration: 'none' }}>🔍 Bekijk API response</a>
             </div>
           )}
 
