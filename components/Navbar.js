@@ -21,7 +21,7 @@ export default function Navbar({ cartCount = 0, onCartClick, user, onLogin, onLo
     { label: 'Store', href: '/store' },
     { label: 'Leaderboard', href: '/leaderboard' },
     { label: 'Rules', href: '/rules' },
-    { label: 'Staff', href: '/staff' },
+    { label: 'Over Ons', href: '/about' },
   ];
 
   return (
@@ -51,7 +51,7 @@ export default function Navbar({ cartCount = 0, onCartClick, user, onLogin, onLo
           {/* Logo */}
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
             <div style={{ width: 36, height: 36, position: 'relative', flexShrink: 0 }}>
-              <Image src="/logo.gif" alt="Logo" fill style={{ objectFit: 'contain' }} unoptimized />
+              <Image src="/logo.gif" alt="Logo" fill style={{ objectFit: 'contain', mixBlendMode: 'screen' }} unoptimized />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
               <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 17, letterSpacing: 2, color: '#eee8d8' }}>BROODJE</span>
