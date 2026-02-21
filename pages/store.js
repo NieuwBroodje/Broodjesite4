@@ -108,6 +108,7 @@ function CartDrawer({ open, onClose, basket, packages, onRemove, onUpdateQty, lo
 
 // ── Package Card ─────────────────────────────────────────────────────────────
 function PackageCard({ pkg, onAddToCart, adding, user, onLogin }) {
+  const [showInfo, setShowInfo] = useState(false);
   const price = parseFloat(pkg.total_price ?? pkg.base_price ?? 0);
   const currency = pkg.currency || 'EUR';
   const isFree = price === 0;
@@ -118,37 +119,86 @@ function PackageCard({ pkg, onAddToCart, adding, user, onLogin }) {
   };
 
   return (
-    <div style={{ background: 'rgba(10,15,26,0.95)', border: '1px solid rgba(232,160,32,0.09)', borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'all 0.3s', position: 'relative' }}
-    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(232,160,32,0.35)'; e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(232,160,32,0.1)'; }}
-    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(232,160,32,0.09)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+    <>
+      {/* Info Modal */}
+      {showInfo && (
+        <>
+          <div onClick={() => setShowInfo(false)} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }} />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            zIndex: 501, width: 480, maxWidth: '95vw', maxHeight: '85vh', overflowY: 'auto',
+            background: 'linear-gradient(180deg, #0d1420 0%, #06090f 100%)',
+            border: '1px solid rgba(232,160,32,0.25)',
+            borderRadius: 16, boxShadow: '0 32px 80px rgba(0,0,0,0.8)',
+          }}>
+            <div style={{ height: 2, background: 'linear-gradient(90deg, transparent, #e8a020, transparent)' }} />
+            {/* Modal image */}
+            <div style={{ width: '100%', aspectRatio: '1/1', position: 'relative', background: pkg.image ? `url(${pkg.image}) center/cover` : 'linear-gradient(135deg, rgba(232,160,32,0.09), rgba(196,133,24,0.03))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {!pkg.image && <span style={{ fontSize: 72, opacity: 0.2 }}>🎁</span>}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, background: 'linear-gradient(transparent, #0d1420)' }} />
+              <div style={{ position: 'absolute', top: 12, right: 12, background: isFree ? 'linear-gradient(135deg,#3dd68c,#2a9060)' : 'linear-gradient(135deg,#e8a020,#c48518)', color: '#06090f', fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 17, padding: '6px 15px', borderRadius: 8 }}>
+                {isFree ? 'GRATIS' : fmt(price, currency)}
+              </div>
+              <button onClick={() => setShowInfo(false)} style={{ position: 'absolute', top: 12, left: 12, width: 32, height: 32, background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, color: '#fff', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+            <div style={{ padding: '20px 24px 28px' }}>
+              {pkg.category?.name && <span style={{ display: 'inline-block', marginBottom: 10, padding: '2px 10px', background: 'rgba(232,160,32,0.12)', border: '1px solid rgba(232,160,32,0.22)', borderRadius: 6, fontSize: 11, color: 'rgba(232,160,32,0.85)', fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase' }}>{pkg.category.name}</span>}
+              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 24, color: '#eee8d8', marginBottom: 12 }}>{pkg.name}</h3>
+              {pkg.description && (
+                <div style={{ color: 'rgba(170,185,200,0.85)', fontSize: 14, lineHeight: 1.8, marginBottom: 20 }}
+                  dangerouslySetInnerHTML={{ __html: pkg.description.replace(/<[^>]+>/g, '') }} />
+              )}
+              <button onClick={() => { setShowInfo(false); handleClick(); }} disabled={adding === pkg.id} style={{
+                width: '100%', padding: '13px',
+                background: adding === pkg.id ? 'rgba(232,160,32,0.12)' : 'linear-gradient(135deg,#e8a020,#c48518)',
+                border: 'none', borderRadius: 9,
+                color: adding === pkg.id ? 'rgba(232,160,32,0.4)' : '#06090f',
+                fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 15, letterSpacing: 0.5,
+                cursor: adding === pkg.id ? 'not-allowed' : 'pointer',
+                boxShadow: adding !== pkg.id ? '0 4px 20px rgba(232,160,32,0.35)' : 'none',
+              }}>
+                {adding === pkg.id ? '⏳ Toevoegen...' : !user ? '🎮 Login & Kopen' : '🛒 In winkelwagen'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
-      <div style={{ height: 190, position: 'relative', background: pkg.image ? `url(${pkg.image}) center/cover` : 'linear-gradient(135deg, rgba(232,160,32,0.09), rgba(196,133,24,0.03))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {!pkg.image && <span style={{ fontSize: 54, opacity: 0.18 }}>🎁</span>}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 70, background: 'linear-gradient(transparent, rgba(10,15,26,0.95))' }} />
-        <div style={{ position: 'absolute', top: 10, right: 10, background: isFree ? 'linear-gradient(135deg,#3dd68c,#2a9060)' : 'linear-gradient(135deg,#e8a020,#c48518)', color: '#06090f', fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 15, padding: '5px 13px', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
-          {isFree ? 'GRATIS' : fmt(price, currency)}
+      {/* Card */}
+      <div style={{ background: 'rgba(10,15,26,0.95)', border: '1px solid rgba(232,160,32,0.09)', borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'all 0.3s', position: 'relative', cursor: 'pointer' }}
+      onClick={() => setShowInfo(true)}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(232,160,32,0.35)'; e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(232,160,32,0.1)'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(232,160,32,0.09)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+
+        {/* Square image */}
+        <div style={{ width: '100%', aspectRatio: '1/1', position: 'relative', background: pkg.image ? `url(${pkg.image}) center/cover` : 'linear-gradient(135deg, rgba(232,160,32,0.09), rgba(196,133,24,0.03))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {!pkg.image && <span style={{ fontSize: 54, opacity: 0.18 }}>🎁</span>}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(transparent, rgba(10,15,26,0.95))' }} />
+          <div style={{ position: 'absolute', top: 10, right: 10, background: isFree ? 'linear-gradient(135deg,#3dd68c,#2a9060)' : 'linear-gradient(135deg,#e8a020,#c48518)', color: '#06090f', fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 14, padding: '4px 11px', borderRadius: 7, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
+            {isFree ? 'GRATIS' : fmt(price, currency)}
+          </div>
+          {pkg.category?.name && <div style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(6,9,15,0.85)', border: '1px solid rgba(232,160,32,0.18)', color: 'rgba(232,160,32,0.8)', fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 10, padding: '3px 10px', borderRadius: 6, letterSpacing: 1.5, textTransform: 'uppercase' }}>{pkg.category.name}</div>}
+          {/* Click hint */}
+          <div style={{ position: 'absolute', bottom: 8, right: 10, fontSize: 10, color: 'rgba(232,160,32,0.5)', fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, letterSpacing: 1 }}>INFO ›</div>
         </div>
-        {pkg.category?.name && <div style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(6,9,15,0.85)', border: '1px solid rgba(232,160,32,0.18)', color: 'rgba(232,160,32,0.8)', fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 10, padding: '3px 10px', borderRadius: 6, letterSpacing: 1.5, textTransform: 'uppercase' }}>{pkg.category.name}</div>}
-      </div>
 
-      <div style={{ padding: '16px 18px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 18, color: '#eee8d8', lineHeight: 1.2 }}>{pkg.name}</h3>
-        {pkg.description && <p style={{ color: 'rgba(138,155,176,0.68)', fontSize: 13, lineHeight: 1.7, flex: 1, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} dangerouslySetInnerHTML={{ __html: pkg.description.replace(/<[^>]+>/g, '') }} />}
-
-        <button onClick={handleClick} disabled={adding === pkg.id} style={{
-          width: '100%', padding: '11px',
-          background: adding === pkg.id ? 'rgba(232,160,32,0.12)' : 'rgba(232,160,32,0.09)',
-          border: '1px solid rgba(232,160,32,0.28)', borderRadius: 9,
-          color: adding === pkg.id ? 'rgba(232,160,32,0.4)' : '#e8a020',
-          fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 13, letterSpacing: 0.5,
-          cursor: adding === pkg.id ? 'not-allowed' : 'pointer', transition: 'all 0.2s', marginTop: 'auto',
-        }}
-        onMouseEnter={e => { if (adding !== pkg.id) { e.currentTarget.style.background = 'linear-gradient(135deg,#e8a020,#c48518)'; e.currentTarget.style.color = '#06090f'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(232,160,32,0.35)'; } }}
-        onMouseLeave={e => { if (adding !== pkg.id) { e.currentTarget.style.background = 'rgba(232,160,32,0.09)'; e.currentTarget.style.color = '#e8a020'; e.currentTarget.style.borderColor = 'rgba(232,160,32,0.28)'; e.currentTarget.style.boxShadow = 'none'; } }}>
-          {adding === pkg.id ? '⏳ Toevoegen...' : !user ? '🎮 Login & Kopen' : '🛒 In winkelwagen'}
-        </button>
+        <div style={{ padding: '14px 16px 16px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 17, color: '#eee8d8', lineHeight: 1.2 }}>{pkg.name}</h3>
+          <button onClick={e => { e.stopPropagation(); handleClick(); }} disabled={adding === pkg.id} style={{
+            width: '100%', padding: '10px',
+            background: adding === pkg.id ? 'rgba(232,160,32,0.12)' : 'rgba(232,160,32,0.09)',
+            border: '1px solid rgba(232,160,32,0.28)', borderRadius: 9,
+            color: adding === pkg.id ? 'rgba(232,160,32,0.4)' : '#e8a020',
+            fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 13, letterSpacing: 0.5,
+            cursor: adding === pkg.id ? 'not-allowed' : 'pointer', transition: 'all 0.2s', marginTop: 'auto',
+          }}
+          onMouseEnter={e => { e.stopPropagation(); if (adding !== pkg.id) { e.currentTarget.style.background = 'linear-gradient(135deg,#e8a020,#c48518)'; e.currentTarget.style.color = '#06090f'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(232,160,32,0.35)'; } }}
+          onMouseLeave={e => { e.stopPropagation(); if (adding !== pkg.id) { e.currentTarget.style.background = 'rgba(232,160,32,0.09)'; e.currentTarget.style.color = '#e8a020'; e.currentTarget.style.borderColor = 'rgba(232,160,32,0.28)'; e.currentTarget.style.boxShadow = 'none'; } }}>
+            {adding === pkg.id ? '⏳ Toevoegen...' : !user ? '🎮 Login & Kopen' : '🛒 In winkelwagen'}
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
