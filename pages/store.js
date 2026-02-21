@@ -397,32 +397,7 @@ export default function Store() {
       {<Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} user={user} onLogin={handleLogin} onLogout={handleLogout} />}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} basket={basket} packages={packages} onRemove={handleRemove} onUpdateQty={handleUpdateQty} loading={cartLoading} user={user} onLogin={handleLogin} />
 
-      <main style={{ paddingTop: cartOpen ? 0 : 80, minHeight: '100vh', position: 'relative' }}>
-        {/* Announcement ticker */}
-        {!cartOpen && (
-          <div style={{ background: 'rgba(6,9,15,0.98)', borderBottom: '1px solid rgba(232,160,32,0.15)', overflow: 'hidden', height: 32, display: 'flex', alignItems: 'center' }}>
-            <div style={{ display: 'flex', animation: 'ticker 28s linear infinite', whiteSpace: 'nowrap', gap: 0 }}>
-              {[
-                '🌙 RAMADAN 2026 — 50% KORTING OP ALLE PAKKETTEN',
-                '🎁 ELKE DONATIE SUPPORT DE SERVER & EVENTS',
-                '⚡ LIMITED PERIODE — MIS HET NIET',
-                '🔥 EXTRA KANSEN: HOE MEER JE DONEERT, HOE MEER KANS',
-                '💎 GOUDEN DEALS — BESTE VALUE VAN HET JAAR',
-              ].concat([
-                '🌙 RAMADAN 2026 — 50% KORTING OP ALLE PAKKETTEN',
-                '🎁 ELKE DONATIE SUPPORT DE SERVER & EVENTS',
-                '⚡ LIMITED PERIODE — MIS HET NIET',
-                '🔥 EXTRA KANSEN: HOE MEER JE DONEERT, HOE MEER KANS',
-                '💎 GOUDEN DEALS — BESTE VALUE VAN HET JAAR',
-              ]).map((msg, i) => (
-                <span key={i} style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 11, letterSpacing: 2, color: 'rgba(232,160,32,0.85)', padding: '0 40px', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 4, height: 4, background: '#e8a020', borderRadius: '50%', display: 'inline-block', opacity: 0.6 }} />
-                  {msg}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+      <main style={{ paddingTop: 92, minHeight: '100vh', position: 'relative' }}>
         {/* BG */}
         <div style={{ position: 'fixed', inset: 0, zIndex: -1, backgroundImage: 'url(https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1920&q=60)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.12) saturate(0.5)' }} />
         <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: 'linear-gradient(180deg, rgba(6,9,15,0.6) 0%, rgba(6,9,15,0.85) 100%)' }} />
@@ -501,7 +476,7 @@ export default function Store() {
         </div>
       </main>
       <Footer />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } } `}</style>
     </>
   );
 }
