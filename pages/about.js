@@ -37,7 +37,7 @@ export default function About() {
       </Head>
       <Navbar />
 
-      <main style={{ paddingTop: 80, minHeight: '100vh' }}>
+      <main style={{ paddingTop: 92, minHeight: '100vh' }}>
         {/* Hero */}
         <div style={{
           background: 'linear-gradient(180deg, rgba(232,160,32,0.07) 0%, transparent 100%)',
