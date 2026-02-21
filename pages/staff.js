@@ -3,14 +3,14 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const staffMembers = [
-  { name: 'Naam1', role: 'Eigenaar', emoji: '👑', color: '#e8a020' },
-  { name: 'Naam2', role: 'Co-Eigenaar', emoji: '⭐', color: '#c48518' },
-  { name: 'Naam3', role: 'Hoofd Admin', emoji: '🛡️', color: '#4080e8' },
-  { name: 'Naam4', role: 'Senior Admin', emoji: '⚔️', color: '#4080e8' },
-  { name: 'Naam5', role: 'Admin', emoji: '🔰', color: '#40c080' },
-  { name: 'Naam6', role: 'Admin', emoji: '🔰', color: '#40c080' },
-  { name: 'Naam7', role: 'Moderator', emoji: '🔧', color: '#8a9bb0' },
-  { name: 'Naam8', role: 'Moderator', emoji: '🔧', color: '#8a9bb0' },
+  { name: 'iiStormz', role: 'Eigenaar', emoji: '👑', color: '#e8a020' },
+  { name: 'iiSaid', role: 'Beheerder', emoji: '⭐', color: '#c48518' },
+  { name: 'LuaRX', role: 'Beheerder', emoji: '🛡️', color: '#4080e8' },
+  { name: 'ilyas', role: 'Chief Executive', emoji: '⚔️', color: '#4080e8' },
+  { name: 'ᴹᵃˡ⁄𝑓(𝑥)', role: 'Chief Executive', emoji: '🔰', color: '#40c080' },
+  { name: 'JUICEBOX.NL', role: 'Chief Executive', emoji: '🔰', color: '#40c080' },
+  { name: 'Karel', role: 'Development', emoji: '🔧', color: '#8a9bb0' },
+  { name: 'Karel', role: 'Website Onderhouder', emoji: '🔧', color: '#8a9bb0' },
 ];
 
 export default function Staff() {
