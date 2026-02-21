@@ -394,7 +394,7 @@ export default function Store() {
   return (
     <>
       <Head><title>Store – Broodje RP</title><link rel="icon" href="/favicon.ico" /></Head>
-      {!cartOpen && <Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} user={user} onLogin={handleLogin} onLogout={handleLogout} />}
+      {<Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} user={user} onLogin={handleLogin} onLogout={handleLogout} />}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} basket={basket} packages={packages} onRemove={handleRemove} onUpdateQty={handleUpdateQty} loading={cartLoading} user={user} onLogin={handleLogin} />
 
       <main style={{ paddingTop: cartOpen ? 0 : 80, minHeight: '100vh', position: 'relative' }}>
