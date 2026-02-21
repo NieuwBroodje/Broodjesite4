@@ -3,60 +3,78 @@ import Head from 'next/head';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-function formatPrice(amount, currency = 'EUR') {
+function fmt(amount, currency = 'EUR') {
   try { return new Intl.NumberFormat('nl-NL', { style: 'currency', currency }).format(amount); }
   catch { return `€${parseFloat(amount).toFixed(2)}`; }
 }
 
 function getRankStyle(rank) {
-  if (rank === 1) return { color: '#FFD700', icon: '👑', bg: 'rgba(255,215,0,0.1)', border: 'rgba(255,215,0,0.35)' };
-  if (rank === 2) return { color: '#C0C0C0', icon: '🥈', bg: 'rgba(192,192,192,0.08)', border: 'rgba(192,192,192,0.25)' };
-  if (rank === 3) return { color: '#CD7F32', icon: '🥉', bg: 'rgba(205,127,50,0.08)', border: 'rgba(205,127,50,0.25)' };
-  return { color: 'rgba(138,155,176,0.7)', icon: null, bg: 'rgba(17,25,39,0.7)', border: 'rgba(232,160,32,0.08)' };
+  if (rank === 1) return { color: '#FFD700', icon: '👑', bg: 'rgba(255,215,0,0.08)', border: 'rgba(255,215,0,0.3)', glow: 'rgba(255,215,0,0.15)' };
+  if (rank === 2) return { color: '#C0C0C0', icon: '🥈', bg: 'rgba(192,192,192,0.06)', border: 'rgba(192,192,192,0.22)', glow: 'none' };
+  if (rank === 3) return { color: '#CD7F32', icon: '🥉', bg: 'rgba(205,127,50,0.06)', border: 'rgba(205,127,50,0.22)', glow: 'none' };
+  return { color: 'rgba(160,175,190,0.7)', icon: null, bg: 'rgba(12,18,32,0.8)', border: 'rgba(255,255,255,0.05)', glow: 'none' };
 }
 
 export default function Leaderboard() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [rawDebug, setRawDebug] = useState(null);
 
   useEffect(() => {
     async function fetchPayments() {
       try {
         setLoading(true);
         const r = await fetch('/api/tebex/payments');
-        if (!r.ok) {
-          const e = await r.json().catch(() => ({}));
-          throw new Error(e.error || e.detail || `Tebex ${r.status}`);
-        }
         const data = await r.json();
-        const raw = Array.isArray(data) ? data : (data.data || data.payments || []);
 
-        // Aggregate by player username
+        if (!r.ok) {
+          setRawDebug(JSON.stringify(data, null, 2));
+          throw new Error(data.error || data.detail || `Tebex ${r.status}`);
+        }
+
+        const raw = Array.isArray(data) ? data : (data.data || data.payments || []);
+        setRawDebug(`${raw.length} betalingen ontvangen`);
+
+        if (raw.length === 0) {
+          setPayments([]);
+          return;
+        }
+
         const totals = {};
         raw.forEach(payment => {
-          const status = (payment.status || '').toLowerCase();
-          if (status !== 'complete' && status !== 'completed') return;
+          const status = String(payment.status || '').toLowerCase();
+          if (!['complete', 'completed', '1'].includes(status) && payment.status !== 1) return;
+
           const name =
             payment.player?.username ||
             payment.player?.name ||
             payment.username ||
             payment.player_name ||
+            payment.email?.split('@')[0] ||
             'Onbekend';
+
           const avatar =
             payment.player?.meta?.avatar ||
             payment.player?.avatar ||
+            payment.player?.meta?.img ||
             null;
+
           const amount = parseFloat(
-            payment.amount || payment.price || payment.total_price || 0
+            payment.amount ?? payment.price ?? payment.total_price ?? payment.gross_revenue ?? 0
           );
           const cur = payment.currency || payment.currency_iso || 'EUR';
+
           if (!totals[name]) totals[name] = { name, avatar, total: 0, count: 0, currency: cur };
           totals[name].total += amount;
           totals[name].count += 1;
         });
 
-        const sorted = Object.values(totals).sort((a, b) => b.total - a.total).slice(0, 25);
+        const sorted = Object.values(totals)
+          .filter(p => p.total > 0)
+          .sort((a, b) => b.total - a.total)
+          .slice(0, 25);
+
         setPayments(sorted);
       } catch (err) {
         setError(err.message);
@@ -75,107 +93,87 @@ export default function Leaderboard() {
       </Head>
       <Navbar />
 
-      <main style={{ paddingTop: 80, minHeight: '100vh', position: 'relative', zIndex: 1 }}>
+      <main style={{ paddingTop: 92, minHeight: '100vh', position: 'relative', zIndex: 1 }}>
+        {/* BG */}
+        <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: 'linear-gradient(135deg, #06090f 0%, #0a0e1a 50%, #06090f 100%)' }} />
+        <div style={{ position: 'fixed', top: '10%', left: '20%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(255,215,0,0.04) 0%, transparent 70%)', filter: 'blur(80px)', zIndex: -1, pointerEvents: 'none' }} />
+
         {/* Hero */}
-        <div style={{ position: 'relative', padding: '56px 24px 44px', textAlign: 'center', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(232,160,32,0.07) 0%, transparent 100%)', borderBottom: '1px solid rgba(232,160,32,0.09)' }} />
-          <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 500, height: 200, background: 'radial-gradient(ellipse, rgba(232,160,32,0.15) 0%, transparent 70%)', filter: 'blur(35px)' }} />
+        <div style={{ position: 'relative', padding: '52px 24px 40px', textAlign: 'center', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,215,0,0.04) 0%, transparent 100%)', borderBottom: '1px solid rgba(232,160,32,0.08)' }} />
+          <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 500, height: 180, background: 'radial-gradient(ellipse, rgba(255,215,0,0.12) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none' }} />
           <div style={{ position: 'relative' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 16px', background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)', borderRadius: 999, marginBottom: 18, fontSize: 12, color: '#FFD700', fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, letterSpacing: 1 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '4px 16px', background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.22)', borderRadius: 999, marginBottom: 16, fontSize: 11, color: '#FFD700', fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, letterSpacing: 1.5 }}>
               👑 TOPDONATEURS
             </div>
-            <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 'clamp(38px, 7vw, 72px)', letterSpacing: 1, marginBottom: 12 }}>
+            <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 'clamp(36px, 7vw, 68px)', letterSpacing: 0.5, marginBottom: 10 }}>
               DONATIE <span style={{ color: '#e8a020' }}>LEADERBOARD</span>
             </h1>
-            <p style={{ color: 'rgba(138,155,176,0.8)', fontSize: 16, maxWidth: 480, margin: '0 auto' }}>
+            <p style={{ color: 'rgba(160,175,190,0.75)', fontSize: 15, maxWidth: 460, margin: '0 auto' }}>
               De helden die de server draaiende houden. Dankjewel voor jullie support! ❤️
             </p>
           </div>
         </div>
 
-        <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px 80px' }}>
+        <div style={{ maxWidth: 820, margin: '0 auto', padding: '0 20px 80px' }}>
 
           {/* Loading */}
           {loading && (
             <div style={{ textAlign: 'center', padding: '80px 0' }}>
-              <div style={{ width: 48, height: 48, border: '3px solid rgba(232,160,32,0.12)', borderTop: '3px solid #e8a020', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
-              <p style={{ color: 'rgba(138,155,176,0.5)', fontSize: 15 }}>Leaderboard laden...</p>
+              <div style={{ width: 44, height: 44, border: '3px solid rgba(255,215,0,0.1)', borderTop: '3px solid #FFD700', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 18px' }} />
+              <p style={{ color: 'rgba(160,175,190,0.5)', fontSize: 14 }}>Leaderboard laden...</p>
             </div>
           )}
 
           {/* Error */}
           {error && !loading && (
-            <div style={{ background: 'rgba(232,64,64,0.06)', border: '1px solid rgba(232,64,64,0.22)', borderRadius: 14, padding: '36px', textAlign: 'center' }}>
-              <div style={{ fontSize: 40, marginBottom: 14 }}>⚠️</div>
-              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 22, marginBottom: 8, color: '#e84040' }}>Kon leaderboard niet laden</h3>
-              <p style={{ color: 'rgba(240,232,216,0.7)', fontSize: 14, marginBottom: 20 }}>{error}</p>
-              <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: '16px 20px', textAlign: 'left', maxWidth: 520, margin: '0 auto 20px' }}>
-                <p style={{ color: '#e8a020', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>Controleer:</p>
-                <p style={{ color: 'rgba(160,175,190,0.85)', fontSize: 13, lineHeight: 2 }}>
-                  1. <code style={{ color: '#e8a020' }}>TEBEX_SECRET_KEY</code> is toegevoegd aan Vercel<br />
-                  2. Je hebt de app opnieuw gedeployed na het toevoegen<br />
-                  3. De Private Key komt van <strong>creator.tebex.io → API Keys</strong><br />
-                  4. Je Tebex webstore heeft betalingen (de API geeft anders een lege lijst)
+            <div style={{ background: 'rgba(232,64,64,0.05)', border: '1px solid rgba(232,64,64,0.18)', borderRadius: 14, padding: '32px', textAlign: 'center' }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
+              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 20, marginBottom: 8, color: '#e84040' }}>Kon leaderboard niet laden</h3>
+              <p style={{ color: 'rgba(220,200,190,0.7)', fontSize: 14, marginBottom: 18, fontFamily: 'monospace', background: 'rgba(0,0,0,0.3)', padding: '8px 14px', borderRadius: 8, display: 'inline-block' }}>{error}</p>
+              <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: 10, padding: '16px 20px', textAlign: 'left', maxWidth: 520, margin: '0 auto 18px' }}>
+                <p style={{ color: '#e8a020', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Mogelijke oorzaken:</p>
+                <p style={{ color: 'rgba(160,175,190,0.85)', fontSize: 13, lineHeight: 2.1 }}>
+                  1. Vercel env var heet <code style={{ color: '#e8a020', background: 'rgba(232,160,32,0.1)', padding: '1px 6px', borderRadius: 4 }}>TEBEX_SECRET_KEY</code> (gebruik dit exacte naam)<br/>
+                  2. Na toevoegen: <strong>Redeploy</strong> vereist in Vercel dashboard<br/>
+                  3. Key moet zijn: <strong>Plugin Secret</strong> van creator.tebex.io → Settings → API<br/>
+                  4. Controleer of je Tebex webstore al betalingen heeft ontvangen
                 </p>
               </div>
-              <a href="/api/tebex/payments" target="_blank" style={{ display: 'inline-block', padding: '8px 18px', background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.28)', borderRadius: 7, color: '#e8a020', fontSize: 13, fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, textDecoration: 'none' }}>🔍 Bekijk API response</a>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <a href="/api/tebex/payments" target="_blank" style={{ padding: '8px 16px', background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.25)', borderRadius: 7, color: '#e8a020', fontSize: 12, fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, textDecoration: 'none', letterSpacing: 0.5 }}>
+                  🔍 Bekijk API response
+                </a>
+              </div>
             </div>
           )}
 
-          {/* Top 3 podium */}
+          {/* Podium top 3 */}
           {!loading && !error && payments.length >= 3 && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 12, marginBottom: 32 }}>
-              {/* 2nd */}
-              <div style={{ textAlign: 'center', flex: 1, maxWidth: 200 }}>
-                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 28, color: '#C0C0C0', marginBottom: 8 }}>🥈</div>
-                <div style={{
-                  background: 'rgba(192,192,192,0.08)', border: '2px solid rgba(192,192,192,0.3)',
-                  borderRadius: '12px 12px 0 0', padding: '20px 16px 24px',
-                }}>
-                  {payments[1].avatar ? (
-                    <img src={payments[1].avatar} alt="" style={{ width: 48, height: 48, borderRadius: '50%', marginBottom: 8, border: '2px solid rgba(192,192,192,0.5)' }} />
-                  ) : (
-                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(192,192,192,0.15)', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎮</div>
-                  )}
-                  <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{payments[1].name}</p>
-                  <p style={{ color: '#C0C0C0', fontWeight: 700, fontSize: 15 }}>{formatPrice(payments[1].total, payments[1].currency)}</p>
-                </div>
-              </div>
-
-              {/* 1st */}
-              <div style={{ textAlign: 'center', flex: 1, maxWidth: 220 }}>
-                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 36, marginBottom: 8 }}>👑</div>
-                <div style={{
-                  background: 'rgba(255,215,0,0.1)', border: '2px solid rgba(255,215,0,0.45)',
-                  borderRadius: '12px 12px 0 0', padding: '24px 16px 28px',
-                  boxShadow: '0 0 40px rgba(255,215,0,0.15)',
-                }}>
-                  {payments[0].avatar ? (
-                    <img src={payments[0].avatar} alt="" style={{ width: 60, height: 60, borderRadius: '50%', marginBottom: 10, border: '3px solid rgba(255,215,0,0.6)' }} />
-                  ) : (
-                    <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,215,0,0.15)', margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>🎮</div>
-                  )}
-                  <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 18, marginBottom: 4 }}>{payments[0].name}</p>
-                  <p style={{ color: '#FFD700', fontWeight: 800, fontSize: 18, textShadow: '0 0 20px rgba(255,215,0,0.4)' }}>{formatPrice(payments[0].total, payments[0].currency)}</p>
-                </div>
-              </div>
-
-              {/* 3rd */}
-              <div style={{ textAlign: 'center', flex: 1, maxWidth: 200 }}>
-                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 28, color: '#CD7F32', marginBottom: 8 }}>🥉</div>
-                <div style={{
-                  background: 'rgba(205,127,50,0.08)', border: '2px solid rgba(205,127,50,0.3)',
-                  borderRadius: '12px 12px 0 0', padding: '20px 16px 20px',
-                }}>
-                  {payments[2].avatar ? (
-                    <img src={payments[2].avatar} alt="" style={{ width: 48, height: 48, borderRadius: '50%', marginBottom: 8, border: '2px solid rgba(205,127,50,0.5)' }} />
-                  ) : (
-                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(205,127,50,0.15)', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎮</div>
-                  )}
-                  <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{payments[2].name}</p>
-                  <p style={{ color: '#CD7F32', fontWeight: 700, fontSize: 15 }}>{formatPrice(payments[2].total, payments[2].currency)}</p>
-                </div>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 10, marginBottom: 28 }}>
+              {[1, 0, 2].map(idx => {
+                const player = payments[idx];
+                const rank = idx + 1;
+                const style = getRankStyle(rank);
+                const isFirst = idx === 0;
+                return (
+                  <div key={idx} style={{ textAlign: 'center', flex: 1, maxWidth: isFirst ? 220 : 190 }}>
+                    <div style={{ fontSize: isFirst ? 38 : 28, marginBottom: 8 }}>{style.icon}</div>
+                    <div style={{
+                      background: style.bg, border: `2px solid ${style.border}`,
+                      borderRadius: '12px 12px 0 0',
+                      padding: isFirst ? '24px 14px 28px' : '18px 12px 22px',
+                      boxShadow: isFirst ? `0 0 40px ${style.glow}` : 'none',
+                    }}>
+                      {player.avatar
+                        ? <img src={player.avatar} alt="" style={{ width: isFirst ? 56 : 44, height: isFirst ? 56 : 44, borderRadius: '50%', marginBottom: 10, border: `2px solid ${style.border}`, display: 'block', margin: '0 auto 10px' }} />
+                        : <div style={{ width: isFirst ? 56 : 44, height: isFirst ? 56 : 44, borderRadius: '50%', background: `${style.color}18`, margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🎮</div>}
+                      <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: isFirst ? 800 : 700, fontSize: isFirst ? 17 : 15, marginBottom: 5, color: '#eee8d8' }}>{player.name}</p>
+                      <p style={{ color: style.color, fontWeight: 800, fontSize: isFirst ? 18 : 15, textShadow: isFirst ? `0 0 20px ${style.color}60` : 'none' }}>{fmt(player.total, player.currency)}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -183,54 +181,37 @@ export default function Leaderboard() {
           {!loading && !error && (
             <div>
               {payments.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 0', opacity: 0.5 }}>
-                  <div style={{ fontSize: 52, marginBottom: 16 }}>🏆</div>
-                  <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 22, marginBottom: 8 }}>Nog geen donateurs</p>
-                  <p style={{ color: 'rgba(138,155,176,0.6)', fontSize: 14 }}>Wees de eerste op het leaderboard!</p>
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                  <div style={{ fontSize: 48, marginBottom: 14, opacity: 0.2 }}>🏆</div>
+                  <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 20, marginBottom: 8, color: 'rgba(160,175,190,0.6)' }}>Nog geen donateurs</p>
+                  <p style={{ color: 'rgba(138,155,176,0.4)', fontSize: 14 }}>Wees de eerste op het leaderboard!</p>
+                  {rawDebug && <p style={{ color: 'rgba(232,160,32,0.4)', fontSize: 12, marginTop: 12, fontFamily: 'monospace' }}>{rawDebug}</p>}
                 </div>
               ) : payments.map((player, i) => {
                 const rank = i + 1;
                 const style = getRankStyle(rank);
                 return (
                   <div key={player.name} style={{
-                    display: 'flex', alignItems: 'center', gap: 16,
-                    padding: '16px 20px', marginBottom: 8,
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    padding: '14px 18px', marginBottom: 6,
                     background: style.bg, border: `1px solid ${style.border}`,
-                    borderRadius: 12, transition: 'all 0.2s',
+                    borderRadius: 11, transition: 'all 0.2s', cursor: 'default',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(4px)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
-
-                    {/* Rank */}
-                    <div style={{ width: 44, textAlign: 'center', flexShrink: 0 }}>
-                      {style.icon ? (
-                        <span style={{ fontSize: 28 }}>{style.icon}</span>
-                      ) : (
-                        <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 20, color: style.color }}>#{rank}</span>
-                      )}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(4px)'; e.currentTarget.style.borderColor = rank <= 3 ? style.border : 'rgba(232,160,32,0.18)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateX(0)'; e.currentTarget.style.borderColor = style.border; }}>
+                    <div style={{ width: 40, textAlign: 'center', flexShrink: 0 }}>
+                      {style.icon
+                        ? <span style={{ fontSize: 24 }}>{style.icon}</span>
+                        : <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 18, color: style.color }}>#{rank}</span>}
                     </div>
-
-                    {/* Avatar */}
-                    {player.avatar ? (
-                      <img src={player.avatar} alt="" style={{ width: 44, height: 44, borderRadius: '50%', border: `2px solid ${style.border}`, flexShrink: 0 }} />
-                    ) : (
-                      <div style={{ width: 44, height: 44, borderRadius: '50%', background: `${style.color}20`, border: `2px solid ${style.border}`, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🎮</div>
-                    )}
-
-                    {/* Name */}
+                    {player.avatar
+                      ? <img src={player.avatar} alt="" style={{ width: 40, height: 40, borderRadius: '50%', border: `1.5px solid ${style.border}`, flexShrink: 0, objectFit: 'cover' }} />
+                      : <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${style.color}14`, border: `1.5px solid ${style.border}`, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🎮</div>}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 18, color: style.color, marginBottom: 2 }}>
-                        {player.name}
-                      </p>
-                      <p style={{ color: 'rgba(138,155,176,0.55)', fontSize: 12 }}>{player.count} donatie{player.count !== 1 ? 's' : ''}</p>
+                      <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 17, color: style.color, marginBottom: 1 }}>{player.name}</p>
+                      <p style={{ color: 'rgba(138,155,176,0.5)', fontSize: 11, letterSpacing: 0.5 }}>{player.count} donatie{player.count !== 1 ? 's' : ''}</p>
                     </div>
-
-                    {/* Total */}
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 20, color: style.color }}>
-                        {formatPrice(player.total, player.currency)}
-                      </p>
-                    </div>
+                    <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 19, color: style.color, flexShrink: 0 }}>{fmt(player.total, player.currency)}</p>
                   </div>
                 );
               })}
@@ -239,19 +220,14 @@ export default function Leaderboard() {
 
           {/* CTA */}
           {!loading && !error && (
-            <div style={{ marginTop: 48, textAlign: 'center', padding: '40px', background: 'rgba(17,25,39,0.8)', border: '1px solid rgba(232,160,32,0.15)', borderRadius: 14 }}>
-              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 28, marginBottom: 10 }}>
+            <div style={{ marginTop: 44, textAlign: 'center', padding: '36px 32px', background: 'rgba(12,18,32,0.9)', border: '1px solid rgba(232,160,32,0.12)', borderRadius: 14 }}>
+              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 26, marginBottom: 8 }}>
                 Kom op het <span style={{ color: '#e8a020' }}>leaderboard</span>!
               </h3>
-              <p style={{ color: 'rgba(138,155,176,0.7)', fontSize: 15, marginBottom: 24 }}>
-                Doneer aan de server en ontvang exclusieve voordelen in-game.
-              </p>
-              <a href="/store" style={{
-                display: 'inline-block', padding: '13px 32px',
-                background: 'linear-gradient(135deg, #e8a020, #c48518)',
-                color: '#080c14', fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 16, letterSpacing: 1,
-                borderRadius: 9, textDecoration: 'none', boxShadow: '0 0 24px rgba(232,160,32,0.4)',
-              }}>🛒 Naar de Store</a>
+              <p style={{ color: 'rgba(160,175,190,0.65)', fontSize: 14, marginBottom: 22 }}>Doneer aan de server en ontvang exclusieve voordelen in-game.</p>
+              <a href="/store" style={{ display: 'inline-block', padding: '12px 28px', background: 'linear-gradient(135deg, #e8a020, #c48518)', color: '#080c14', fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: 15, letterSpacing: 1, borderRadius: 9, textDecoration: 'none', boxShadow: '0 0 22px rgba(232,160,32,0.35)' }}>
+                🛒 Naar de Store
+              </a>
             </div>
           )}
         </div>
