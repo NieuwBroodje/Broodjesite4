@@ -11,7 +11,7 @@ const stats = [
 ];
 
 const values = [
-  { icon: '❤️', title: 'Passie', desc: 'We zijn gepassioneerd over roleplay en gaming.' },
+  { icon: '❤️', title: 'Passie', desc: 'We zijn gepassioneerd over roleplay en community.' },
   { icon: '🎯', title: 'Kwaliteit', desc: 'We streven naar de beste spelerservaring.' },
   { icon: '🤝', title: 'Community', desc: 'Onze community staat altijd op de eerste plaats.' },
   { icon: '🔄', title: 'Innovatie', desc: 'We blijven vernieuwen en verbeteren.' },
