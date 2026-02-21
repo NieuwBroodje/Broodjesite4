@@ -30,7 +30,7 @@ export default function Footer() {
           </div>
           <div>
             <h4 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 13, letterSpacing: 2, marginBottom: 18, color: '#e8a020', textTransform: 'uppercase' }}>Community</h4>
-            <a href="https://discord.gg/jouw-discord" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px', background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.25)', borderRadius: 9, color: '#e8a020', fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 13, letterSpacing: 0.5, transition: 'all 0.2s', textDecoration: 'none' }}
+            <a href="https://discord.gg/broodjerp" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px', background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.25)', borderRadius: 9, color: '#e8a020', fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 13, letterSpacing: 0.5, transition: 'all 0.2s', textDecoration: 'none' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(232,160,32,0.18)'; e.currentTarget.style.borderColor = 'rgba(232,160,32,0.5)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(232,160,32,0.1)'; e.currentTarget.style.borderColor = 'rgba(232,160,32,0.25)'; }}>
               💬 Discord Server
