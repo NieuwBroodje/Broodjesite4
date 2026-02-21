@@ -4,10 +4,13 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 
 const TICKER_MSGS = [
-  '🌙 RAMADAN 2026 — 50% KORTING OP ALLE PAKKETTEN',
+  '💘 Valentijnspecial 2026 — 35% KORTING OP ALLE PAKKETTEN',
+  '💘 Valentijnspecial 2026 — CODE: schatje35',
   '🎁 ELKE DONATIE SUPPORT DE SERVER & EVENTS',
   '⚡ LIMITED PERIODE — MIS HET NIET',
+  '💘 Valentijnspecial 2026 — CODE: schatje35',
   '🔥 EXTRA KANSEN: HOE MEER JE DONEERT, HOE MEER KANS',
+  '💘 Valentijnspecial 2026 — CODE: schatje35',
   '💎 GOUDEN DEALS — BESTE VALUE VAN HET JAAR',
 ];
 
