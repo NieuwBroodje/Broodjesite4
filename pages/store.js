@@ -12,7 +12,7 @@ function fmt(price, currency = 'EUR') {
 }
 
 // ── Cart Drawer ──────────────────────────────────────────────────────────────
-function CartDrawer({ open, onClose, basket, packages, onRemove, loading, user, onLogin }) {
+function CartDrawer({ open, onClose, basket, packages, onRemove, onUpdateQty, loading, user, onLogin }) {
   const items = basket?.data?.packages || [];
   const total = basket?.data?.total_price ?? basket?.data?.base_price ?? 0;
   const currency = basket?.data?.currency || 'EUR';
@@ -59,6 +59,7 @@ function CartDrawer({ open, onClose, basket, packages, onRemove, loading, user, 
           {!loading && items.map((item, i) => {
             const pkg = packages.find(p => p.id === item.id) || {};
             const price = item.in_basket?.price ?? item.total_price ?? pkg.total_price ?? 0;
+            const qty = item.in_basket?.quantity ?? 1;
             return (
               <div key={i} style={{ background: 'rgba(15,22,36,0.8)', border: '1px solid rgba(232,160,32,0.07)', borderRadius: 10, padding: '12px', marginBottom: 8, display: 'flex', gap: 11, alignItems: 'flex-start', transition: 'border-color 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(232,160,32,0.2)'}
@@ -66,7 +67,13 @@ function CartDrawer({ open, onClose, basket, packages, onRemove, loading, user, 
                 <div style={{ width: 48, height: 48, borderRadius: 8, flexShrink: 0, background: pkg.image ? `url(${pkg.image}) center/cover` : 'rgba(232,160,32,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{!pkg.image && '🎁'}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name || pkg.name}</p>
-                  <p style={{ color: '#e8a020', fontWeight: 700, fontSize: 14 }}>{fmt(price, item.currency || currency)}</p>
+                  <p style={{ color: '#e8a020', fontWeight: 700, fontSize: 14, marginBottom: 6 }}>{fmt(price, item.currency || currency)}</p>
+                  {/* Quantity controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <button onClick={() => onUpdateQty(item.rows_id || item.id, item.id, qty - 1)} style={{ width: 24, height: 24, background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.2)', borderRadius: 5, color: '#e8a020', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>−</button>
+                    <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 14, minWidth: 20, textAlign: 'center' }}>{qty}</span>
+                    <button onClick={() => onUpdateQty(item.rows_id || item.id, item.id, qty + 1)} style={{ width: 24, height: 24, background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.2)', borderRadius: 5, color: '#e8a020', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>+</button>
+                  </div>
                 </div>
                 <button onClick={() => onRemove(item.rows_id || item.id)} style={{ background: 'rgba(240,80,96,0.1)', border: '1px solid rgba(240,80,96,0.2)', borderRadius: 6, padding: '4px 9px', color: '#f05060', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', transition: 'all 0.2s', flexShrink: 0 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,80,96,0.22)'}
@@ -286,6 +293,24 @@ export default function Store() {
     setCartLoading(false);
   }
 
+  async function handleUpdateQty(rowId, pkgId, newQty) {
+    if (!basketIdent) return;
+    if (newQty <= 0) { await handleRemove(rowId); return; }
+    setCartLoading(true);
+    try {
+      await fetch('/api/tebex/basket/remove-package', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ basketIdent, rowId }),
+      });
+      await fetch('/api/tebex/basket/add-package', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ basketIdent, packageId: pkgId, quantity: newQty }),
+      });
+      await refreshBasket(basketIdent);
+    } catch {}
+    setCartLoading(false);
+  }
+
   // Load store products
   useEffect(() => {
     async function load() {
@@ -319,10 +344,35 @@ export default function Store() {
   return (
     <>
       <Head><title>Store – Broodje RP</title><link rel="icon" href="/favicon.ico" /></Head>
-      <Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} user={user} onLogin={handleLogin} onLogout={handleLogout} />
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} basket={basket} packages={packages} onRemove={handleRemove} loading={cartLoading} user={user} onLogin={handleLogin} />
+      {!cartOpen && <Navbar cartCount={cartCount} onCartClick={() => setCartOpen(true)} user={user} onLogin={handleLogin} onLogout={handleLogout} />}
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} basket={basket} packages={packages} onRemove={handleRemove} onUpdateQty={handleUpdateQty} loading={cartLoading} user={user} onLogin={handleLogin} />
 
-      <main style={{ paddingTop: 80, minHeight: '100vh', position: 'relative' }}>
+      <main style={{ paddingTop: cartOpen ? 0 : 80, minHeight: '100vh', position: 'relative' }}>
+        {/* Announcement ticker */}
+        {!cartOpen && (
+          <div style={{ background: 'rgba(6,9,15,0.98)', borderBottom: '1px solid rgba(232,160,32,0.15)', overflow: 'hidden', height: 32, display: 'flex', alignItems: 'center' }}>
+            <div style={{ display: 'flex', animation: 'ticker 28s linear infinite', whiteSpace: 'nowrap', gap: 0 }}>
+              {[
+                '🌙 RAMADAN 2026 — 50% KORTING OP ALLE PAKKETTEN',
+                '🎁 ELKE DONATIE SUPPORT DE SERVER & EVENTS',
+                '⚡ LIMITED PERIODE — MIS HET NIET',
+                '🔥 EXTRA KANSEN: HOE MEER JE DONEERT, HOE MEER KANS',
+                '💎 GOUDEN DEALS — BESTE VALUE VAN HET JAAR',
+              ].concat([
+                '🌙 RAMADAN 2026 — 50% KORTING OP ALLE PAKKETTEN',
+                '🎁 ELKE DONATIE SUPPORT DE SERVER & EVENTS',
+                '⚡ LIMITED PERIODE — MIS HET NIET',
+                '🔥 EXTRA KANSEN: HOE MEER JE DONEERT, HOE MEER KANS',
+                '💎 GOUDEN DEALS — BESTE VALUE VAN HET JAAR',
+              ]).map((msg, i) => (
+                <span key={i} style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 11, letterSpacing: 2, color: 'rgba(232,160,32,0.85)', padding: '0 40px', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 4, height: 4, background: '#e8a020', borderRadius: '50%', display: 'inline-block', opacity: 0.6 }} />
+                  {msg}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         {/* BG */}
         <div style={{ position: 'fixed', inset: 0, zIndex: -1, backgroundImage: 'url(https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1920&q=60)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.12) saturate(0.5)' }} />
         <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: 'linear-gradient(180deg, rgba(6,9,15,0.6) 0%, rgba(6,9,15,0.85) 100%)' }} />
@@ -401,7 +451,7 @@ export default function Store() {
         </div>
       </main>
       <Footer />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
     </>
   );
 }
