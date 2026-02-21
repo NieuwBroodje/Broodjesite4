@@ -4,10 +4,10 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const stats = [
-  { num: '500+', label: 'Community Leden' },
-  { num: '50+', label: 'Dagelijks Online' },
-  { num: '15+', label: 'Staff Leden' },
-  { num: '99.9%', label: 'Uptime' },
+  { num: '3000+', label: 'Community Leden', color: '#e8a020' },
+  { num: '50+', label: 'Dagelijks Online', color: '#3dd68c' },
+  { num: '50+', label: 'Staff Leden', color: '#a78bfa' },
+  { num: '99.9%', label: 'Uptime', color: '#60a5fa' },
 ];
 
 const values = [
@@ -202,7 +202,7 @@ export default function About() {
             <p style={{ color: 'rgba(138,155,176,0.8)', marginBottom: 26, fontSize: 15 }}>
               Sluit je aan bij onze groeiende community via Discord!
             </p>
-            <a href="https://discord.gg/jouw-discord" target="_blank" rel="noopener noreferrer" style={{
+            <a href="https://discord.gg/broodjerp" target="_blank" rel="noopener noreferrer" style={{
               display: 'inline-block', padding: '13px 32px',
               background: 'linear-gradient(135deg, #e8a020, #c48518)',
               color: '#080c14', fontFamily: 'Rajdhani, sans-serif',
