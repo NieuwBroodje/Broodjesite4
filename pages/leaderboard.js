@@ -73,7 +73,7 @@ export default function Leaderboard() {
         const sorted = Object.values(totals)
           .filter(p => p.total > 0)
           .sort((a, b) => b.total - a.total)
-          .slice(0, 25);
+          .slice(0, 5);
 
         setPayments(sorted);
       } catch (err) {
