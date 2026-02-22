@@ -1,27 +1,39 @@
+// pages/api/tebex/basket/create.js
+// Creates a new Tebex basket via the Headless API
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const token = process.env.TEBEX_API_KEY;
-  if (!token) return res.status(500).json({ error: 'TEBEX_API_KEY not set' });
-  const { username } = req.body || {};
+
+  const key = process.env.TEBEX_SECRET_KEY || process.env.TEBEX_API_KEY;
+  if (!key) return res.status(500).json({ error: 'TEBEX_SECRET_KEY ontbreekt in environment variables' });
+
   try {
-    const host = req.headers.host;
-    const proto = host?.includes('localhost') ? 'http' : 'https';
-    const origin = `${proto}://${host}`;
+    const { username } = req.body || {};
+    const host = req.headers.origin || req.headers.host || 'http://localhost:3000';
+    const baseUrl = host.startsWith('http') ? host : `https://${host}`;
+
     const body = {
-      complete_url: `${origin}/store?status=complete`,
-      cancel_url: `${origin}/store?status=cancelled`,
-      complete_auto_redirect: true,
+      complete_url: `${baseUrl}/store?status=complete`,
+      cancel_url: `${baseUrl}/store?status=cancelled`,
     };
-    // username is REQUIRED by Tebex before adding packages
     if (username) body.username = username;
-    const r = await fetch(`https://headless.tebex.io/api/accounts/${token.trim()}/baskets`, {
+
+    const response = await fetch(`https://headless.tebex.io/api/accounts/${key}/baskets`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: {
+        'X-Tebex-Secret': key,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(body),
     });
-    const text = await r.text();
-    if (!r.ok) return res.status(r.status).json({ error: `Tebex ${r.status}`, detail: text });
-    return res.status(200).json(JSON.parse(text));
+
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { error: text }; }
+
+    if (response.ok) return res.status(200).json(data);
+    return res.status(response.status).json(data);
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
