@@ -446,6 +446,7 @@ export default function Store() {
           </h1>
           <p style={{ color: 'rgba(138,155,176,0.7)', fontSize: 15, maxWidth: 450, margin: '0 auto' }}>
             Support de server en ontvang exclusieve in-game voordelen.
+            Geen refunds, we investeren alles direct terug in de server.
           </p>
           {!user && (
             <button onClick={handleLogin} style={{ marginTop: 24, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.3)', borderRadius: 9, color: '#e8a020', fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'all 0.2s', letterSpacing: 0.5 }}>
