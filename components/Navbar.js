@@ -173,7 +173,7 @@ export default function Navbar({ cartCount = 0, onCartClick, user, onLogin, onLo
                   <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(61,214,140,0.2)', border: '1.5px solid rgba(61,214,140,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, overflow: 'hidden' }}>
                     {user.avatar ? <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🎮'}
                   </div>
-                  <a href="/profile" style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 12, color: '#3dd68c', letterSpacing: 0.5, textDecoration: 'none' }}>{user.username}</a>
+                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 12, color: '#3dd68c', letterSpacing: 0.5 }}>{user.username}</span>
                 </div>
                 <button onClick={onLogout} style={{ width: 30, height: 30, background: 'rgba(240,80,96,0.07)', border: '1px solid rgba(240,80,96,0.18)', borderRadius: 7, color: 'rgba(240,80,96,0.55)', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(240,80,96,0.16)'; e.currentTarget.style.color = '#f05060'; }}
