@@ -203,10 +203,10 @@ export default function Home() {
         <section style={{ position: 'relative', zIndex: 4, background: 'rgba(8,12,22,0.95)', borderTop: '1px solid rgba(232,160,32,0.1)', borderBottom: '1px solid rgba(232,160,32,0.1)' }}>
           <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 0 }}>
             {[
-              { num: '3000', suffix: '+', label: 'Community Leden', color: '#e8a020' },
-              { num: '50', suffix: '+', label: 'Staff Leden', color: '#a78bfa' },
-              { num: '24', suffix: '/7', label: 'Online', color: '#3dd68c' },
-              { num: '100', suffix: '+', label: 'Custom Cars', color: '#60a5fa' },
+              { num: '3500', suffix: '+', label: 'Community Leden', color: '#e8a020' },
+              { num: '80', suffix: '+', label: 'Staff Leden', color: '#a78bfa' },
+              { num: '24', suffix: '/7', label: 'Staff Online', color: '#3dd68c' },
+              { num: '100', suffix: '+', label: 'Custom Voertuigen', color: '#60a5fa' },
               { num: '5', suffix: '★', label: 'Community Rating', color: '#fbbf24' },
             ].map((stat, i) => (
               <div key={i} style={{ textAlign: 'center', padding: '26px 20px', borderRight: i < 4 ? '1px solid rgba(232,160,32,0.07)' : 'none', position: 'relative', overflow: 'hidden' }}>
