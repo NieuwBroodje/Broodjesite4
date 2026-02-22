@@ -84,10 +84,24 @@ export default function Navbar({ cartCount = 0, onCartClick, user, onLogin, onLo
 
           {/* Logo */}
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
-            <div style={{ width: 36, height: 36, position: 'relative', flexShrink: 0 }}>
+            <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
+              {/* Outer glow ring */}
+              <div style={{
+                position: 'absolute', inset: -3,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(232,160,32,0.22) 0%, rgba(180,100,10,0.08) 60%, transparent 80%)',
+                boxShadow: '0 0 18px rgba(232,160,32,0.35), 0 0 40px rgba(232,160,32,0.12), inset 0 0 12px rgba(232,160,32,0.08)',
+                animation: 'logoGlow 3s ease-in-out infinite',
+              }} />
+              {/* Dark circle bg */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle at 40% 35%, rgba(60,40,10,0.7) 0%, rgba(10,12,20,0.85) 70%)',
+              }} />
               <Image
                 src="/logo.gif" alt="Logo" fill
-                style={{ objectFit: 'contain', mixBlendMode: 'screen', filter: 'drop-shadow(0 0 10px rgba(232,160,32,0.6))' }}
+                style={{ objectFit: 'contain', position: 'relative', zIndex: 1, filter: 'drop-shadow(0 0 8px rgba(232,160,32,0.7))' }}
                 unoptimized
               />
             </div>
@@ -209,6 +223,7 @@ export default function Navbar({ cartCount = 0, onCartClick, user, onLogin, onLo
 
       <style>{`
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        @keyframes logoGlow { 0%,100% { box-shadow: 0 0 18px rgba(232,160,32,0.35), 0 0 40px rgba(232,160,32,0.12), inset 0 0 12px rgba(232,160,32,0.08); } 50% { box-shadow: 0 0 26px rgba(232,160,32,0.55), 0 0 60px rgba(232,160,32,0.2), inset 0 0 16px rgba(232,160,32,0.12); } }
         @media (max-width: 900px) { .center-nav { display: none !important; } .right-nav { display: none !important; } .hamburger { display: flex !important; } }
       `}</style>
     </>
