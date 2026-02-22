@@ -1,4 +1,5 @@
 // pages/api/tebex/basket/remove-package.js
+// POST https://headless.tebex.io/api/baskets/{ident}/packages/remove
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -10,28 +11,27 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).json({ error: 'TEBEX_SECRET_KEY ontbreekt' });
 
   try {
-    const response = await fetch(`https://headless.tebex.io/api/baskets/${basketIdent}/packages/${rowId}`, {
-      method: 'DELETE',
-      headers: {
-        'X-Tebex-Secret': key,
-        'Accept': 'application/json',
-      },
+    // Tebex remove uses POST to /packages/remove with package_id in body
+    const response = await fetch(`https://headless.tebex.io/api/baskets/${basketIdent}/packages/remove`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ package_id: rowId }),
     });
-
-    if (response.status === 204 || response.status === 200) {
-      // Success — refresh basket to get updated state
-      const basketRes = await fetch(`https://headless.tebex.io/api/baskets/${basketIdent}`, {
-        headers: { 'X-Tebex-Secret': key, 'Accept': 'application/json' },
-      });
-      const basketText = await basketRes.text();
-      try { return res.status(200).json(JSON.parse(basketText)); }
-      catch { return res.status(200).json({ success: true }); }
-    }
 
     const text = await response.text();
     let data;
     try { data = JSON.parse(text); } catch { data = { error: text }; }
-    return res.status(response.status).json(data);
+
+    if (!response.ok) return res.status(response.status).json(data);
+
+    // Return updated basket
+    const basketRes = await fetch(`https://headless.tebex.io/api/accounts/${key}/baskets/${basketIdent}`, {
+      headers: { 'Accept': 'application/json' },
+    });
+    const basketText = await basketRes.text();
+    try { return res.status(200).json(JSON.parse(basketText)); }
+    catch { return res.status(200).json({ success: true }); }
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
