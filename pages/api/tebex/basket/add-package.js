@@ -4,11 +4,10 @@ export default async function handler(req, res) {
   const { basketIdent, packageId, quantity = 1 } = req.body;
   if (!basketIdent) return res.status(400).json({ error: 'basketIdent is verplicht' });
   if (!packageId) return res.status(400).json({ error: 'packageId is verplicht' });
-  const privateKey = process.env.TEBEX_PRIVATE_KEY;
   try {
     const response = await fetch(`https://headless.tebex.io/api/baskets/${basketIdent}/packages`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', ...(privateKey && { 'X-Tebex-Secret': privateKey }) },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ package_id: packageId, quantity }),
     });
     const text = await response.text();
