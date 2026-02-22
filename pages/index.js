@@ -205,7 +205,7 @@ export default function Home() {
             {[
               { num: '3500', suffix: '+', label: 'Community Leden', color: '#e8a020' },
               { num: '80', suffix: '+', label: 'Staff Leden', color: '#a78bfa' },
-              { num: '2', suffix: '/7', label: 'Staff Online', color: '#3dd68c' },
+              { num: '4', suffix: '/7', label: 'Staff Online', color: '#3dd68c' },
               { num: '100', suffix: '+', label: 'Custom Voertuigen', color: '#60a5fa' },
               { num: '5', suffix: '★', label: 'Community Rating', color: '#fbbf24' },
             ].map((stat, i) => (
