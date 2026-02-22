@@ -1,4 +1,5 @@
 // pages/api/tebex/basket/auth.js
+// GET https://headless.tebex.io/api/accounts/{token}/baskets/{ident}/auth?returnUrl=...
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -9,14 +10,11 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).json({ error: 'TEBEX_SECRET_KEY ontbreekt' });
 
   try {
-    const url = new URL(`https://headless.tebex.io/api/baskets/${ident}/auth`);
+    const url = new URL(`https://headless.tebex.io/api/accounts/${key}/baskets/${ident}/auth`);
     if (returnUrl) url.searchParams.set('returnUrl', returnUrl);
 
     const response = await fetch(url.toString(), {
-      headers: {
-        'X-Tebex-Secret': key,
-        'Accept': 'application/json',
-      },
+      headers: { 'Accept': 'application/json' },
     });
 
     const text = await response.text();
