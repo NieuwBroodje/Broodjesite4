@@ -59,25 +59,33 @@ function CartDrawer({ open, onClose, basket, packages, onRemove, onUpdateQty, lo
           {!loading && items.map((item, i) => {
             const pkg = packages.find(p => p.id === item.id) || {};
             const price = item.in_basket?.price ?? item.total_price ?? pkg.total_price ?? 0;
-            const qty = item.in_basket?.quantity ?? 1;
+            const qty = item.in_basket?.quantity ?? item.quantity ?? 1;
+            // Tebex uses different ID fields depending on API version
+            const removeId = item.rows_id ?? item.row_id ?? item.in_basket?.rows_id ?? item.in_basket?.id ?? item.id;
             return (
-              <div key={i} style={{ background: 'rgba(15,22,36,0.8)', border: '1px solid rgba(232,160,32,0.07)', borderRadius: 10, padding: '12px', marginBottom: 8, display: 'flex', gap: 11, alignItems: 'flex-start', transition: 'border-color 0.2s' }}
+              <div key={i} style={{ background: 'rgba(15,22,36,0.8)', border: '1px solid rgba(232,160,32,0.07)', borderRadius: 10, padding: '12px', marginBottom: 8, display: 'flex', gap: 11, alignItems: 'center', transition: 'border-color 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(232,160,32,0.2)'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(232,160,32,0.07)'}>
-                <div style={{ width: 48, height: 48, borderRadius: 8, flexShrink: 0, background: pkg.image ? `url(${pkg.image}) center/cover` : 'rgba(232,160,32,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{!pkg.image && '🎁'}</div>
+                <div style={{ width: 48, height: 48, borderRadius: 8, flexShrink: 0, background: pkg.image ? `url(${pkg.image}) center/cover` : 'rgba(232,160,32,0.08)', backgroundSize: 'cover', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{!pkg.image && '🎁'}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name || pkg.name}</p>
-                  <p style={{ color: '#e8a020', fontWeight: 700, fontSize: 14, marginBottom: 6 }}>{fmt(price, item.currency || currency)}</p>
-                  {/* Quantity controls */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <button onClick={() => onUpdateQty(item.rows_id || item.id, item.id, qty - 1)} style={{ width: 24, height: 24, background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.2)', borderRadius: 5, color: '#e8a020', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>−</button>
-                    <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 14, minWidth: 20, textAlign: 'center' }}>{qty}</span>
-                    <button onClick={() => onUpdateQty(item.rows_id || item.id, item.id, qty + 1)} style={{ width: 24, height: 24, background: 'rgba(232,160,32,0.1)', border: '1px solid rgba(232,160,32,0.2)', borderRadius: 5, color: '#e8a020', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>+</button>
-                  </div>
+                  <p style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name || pkg.name}</p>
+                  <p style={{ color: '#e8a020', fontWeight: 700, fontSize: 14 }}>{fmt(price, item.currency || currency)}</p>
                 </div>
-                <button onClick={() => onRemove(item.rows_id || item.id)} style={{ background: 'rgba(240,80,96,0.1)', border: '1px solid rgba(240,80,96,0.2)', borderRadius: 6, padding: '4px 9px', color: '#f05060', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', transition: 'all 0.2s', flexShrink: 0 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,80,96,0.22)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(240,80,96,0.1)'}>✕</button>
+                {/* Quantity controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                  <button onClick={() => onUpdateQty(removeId, item.id, qty - 1)} style={{ width: 26, height: 26, background: 'rgba(232,160,32,0.08)', border: '1px solid rgba(232,160,32,0.18)', borderRadius: 6, color: '#e8a020', cursor: 'pointer', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0 }}>−</button>
+                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 14, minWidth: 22, textAlign: 'center' }}>{qty}</span>
+                  <button onClick={() => onUpdateQty(removeId, item.id, qty + 1)} style={{ width: 26, height: 26, background: 'rgba(232,160,32,0.08)', border: '1px solid rgba(232,160,32,0.18)', borderRadius: 6, color: '#e8a020', cursor: 'pointer', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0 }}>+</button>
+                </div>
+                {/* Remove button */}
+                <button
+                  onClick={() => onRemove(removeId)}
+                  title="Verwijder item"
+                  style={{ width: 30, height: 30, background: 'rgba(240,80,96,0.1)', border: '1px solid rgba(240,80,96,0.22)', borderRadius: 7, color: '#f05060', cursor: 'pointer', fontSize: 13, transition: 'all 0.2s', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(240,80,96,0.25)'; e.currentTarget.style.borderColor = 'rgba(240,80,96,0.5)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(240,80,96,0.1)'; e.currentTarget.style.borderColor = 'rgba(240,80,96,0.22)'; e.currentTarget.style.transform = 'scale(1)'; }}>
+                  🗑
+                </button>
               </div>
             );
           })}
@@ -332,14 +340,22 @@ export default function Store() {
 
   async function handleRemove(rowId) {
     if (!basketIdent) return;
+    if (!rowId) { console.warn('handleRemove: geen rowId opgegeven'); return; }
     setCartLoading(true);
     try {
-      await fetch('/api/tebex/basket/remove-package', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const r = await fetch('/api/tebex/basket/remove-package', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ basketIdent, rowId }),
       });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        console.error('Remove failed:', err);
+      }
       await refreshBasket(basketIdent);
-    } catch {}
+    } catch (e) {
+      console.error('handleRemove error:', e);
+    }
     setCartLoading(false);
   }
 
