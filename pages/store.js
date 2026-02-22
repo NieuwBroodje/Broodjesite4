@@ -332,10 +332,21 @@ export default function Store() {
         body: JSON.stringify({ basketIdent, packageId: pkg.id, quantity: 1 }),
       });
       const data = await r.json();
-      if (r.ok) { setBasket(data); setCartOpen(true); }
-      else alert(`Fout: ${data.detail || data.error}`);
-    } catch { alert('Er ging iets mis. Probeer opnieuw.'); }
-    setAddingId(null); setCartLoading(false);
+      if (r.ok) {
+        // Refresh basket to get latest state
+        await refreshBasket(basketIdent);
+        setCartOpen(true);
+      } else {
+        // Show the full error — try every possible field
+        const msg = data?.message || data?.detail || data?.error
+          || (typeof data === 'string' ? data : JSON.stringify(data));
+        alert(`Kon item niet toevoegen:\n${msg}`);
+      }
+    } catch (e) {
+      alert(`Er ging iets mis: ${e.message}`);
+    }
+    setAddingId(null);
+    setCartLoading(false);
   }
 
   async function handleRemove(rowId) {
