@@ -3,7 +3,7 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const key = process.env.TEBEX_SECRET_KEY || process.env.TEBEX_API_KEY;
+  const key = process.env.TEBEX_API_KEY;
   if (!key) return res.status(500).json({ error: 'TEBEX_SECRET_KEY ontbreekt' });
 
   try {
