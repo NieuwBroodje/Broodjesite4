@@ -1,19 +1,20 @@
 // pages/api/tebex/basket/create.js
+// {token} = publieke webstore identifier (TEBEX_PUBLIC)
+// Geen Authorization header nodig voor Headless API
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const privateKey = process.env.TEBEX_PRIVATE_KEY;
-  if (!privateKey) return res.status(500).json({ error: 'TEBEX_PRIVATE_KEY ontbreekt in Vercel environment variables' });
+  const token = process.env.TEBEX_API_KEY;
+  if (!token) return res.status(500).json({ error: 'TEBEX_PUBLIC ontbreekt in Vercel environment variables' });
 
   try {
     const host = req.headers.origin || `https://${req.headers.host}`;
 
-    const response = await fetch('https://headless.tebex.io/api/baskets', {
+    const response = await fetch(`https://headless.tebex.io/api/accounts/${token}/baskets`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-Tebex-Secret': privateKey,
       },
       body: JSON.stringify({
         complete_url: `${host}/store?status=complete`,
@@ -27,7 +28,7 @@ export default async function handler(req, res) {
     try { data = JSON.parse(text); } catch { data = { error: text }; }
 
     if (!response.ok) {
-      console.error(`Tebex basket create mislukt [${response.status}]:`, text);
+      console.error(`Basket create failed [${response.status}]:`, text);
       return res.status(response.status).json({ error: data?.message || data?.error || text });
     }
 
