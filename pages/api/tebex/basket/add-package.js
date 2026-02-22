@@ -1,6 +1,4 @@
 // pages/api/tebex/basket/add-package.js
-// Adds a package to the Tebex basket using the Headless API
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -9,16 +7,15 @@ export default async function handler(req, res) {
   if (!packageId) return res.status(400).json({ error: 'packageId is verplicht' });
 
   const key = process.env.TEBEX_SECRET_KEY || process.env.TEBEX_API_KEY;
-  if (!key) return res.status(500).json({ error: 'TEBEX_SECRET_KEY ontbreekt in environment variables' });
+  if (!key) return res.status(500).json({ error: 'TEBEX_SECRET_KEY ontbreekt' });
 
   try {
-    const url = `https://headless.tebex.io/api/baskets/${basketIdent}/packages`;
-
-    const response = await fetch(url, {
+    const response = await fetch(`https://headless.tebex.io/api/baskets/${basketIdent}/packages`, {
       method: 'POST',
       headers: {
         'X-Tebex-Secret': key,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({
         package_id: packageId,
@@ -30,9 +27,8 @@ export default async function handler(req, res) {
     let data;
     try { data = JSON.parse(text); } catch { data = { error: text }; }
 
-    if (response.ok) return res.status(200).json(data);
-    return res.status(response.status).json(data);
-
+    if (!response.ok) return res.status(response.status).json(data);
+    return res.status(200).json(data);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
