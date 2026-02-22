@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   if (!basketIdent) return res.status(400).json({ error: 'basketIdent is verplicht' });
   if (rowId === undefined || rowId === null) return res.status(400).json({ error: 'rowId is verplicht' });
 
-  const key = process.env.TEBEX_SECRET_KEY || process.env.TEBEX_API_KEY;
+  const key = process.env.TEBEX_API_KEY;
   if (!key) return res.status(500).json({ error: 'TEBEX_SECRET_KEY ontbreekt' });
 
   try {
