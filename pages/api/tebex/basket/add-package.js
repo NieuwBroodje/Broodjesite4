@@ -1,4 +1,5 @@
 // pages/api/tebex/basket/add-package.js
+// POST https://headless.tebex.io/api/accounts/{token}/baskets/{ident}/packages
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -10,17 +11,10 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).json({ error: 'TEBEX_SECRET_KEY ontbreekt' });
 
   try {
-    const response = await fetch(`https://headless.tebex.io/api/baskets/${basketIdent}/packages`, {
+    const response = await fetch(`https://headless.tebex.io/api/accounts/${key}/baskets/${basketIdent}/packages`, {
       method: 'POST',
-      headers: {
-        'X-Tebex-Secret': key,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        package_id: packageId,
-        quantity: quantity,
-      }),
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ package_id: packageId, quantity }),
     });
 
     const text = await response.text();
